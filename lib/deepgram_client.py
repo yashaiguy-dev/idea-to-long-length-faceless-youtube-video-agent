@@ -1,10 +1,13 @@
 import json
+import os
 import subprocess
 from pathlib import Path
 
 import requests
 
 from lib.config import DEEPGRAM_API_KEY, DEEPGRAM_MODEL
+
+_ENV = {**os.environ, "PATH": f"/opt/homebrew/bin:{os.environ.get('PATH', '')}"}
 
 
 def extract_audio(input_path: Path, output_path: Path, sample_rate: int = 16000) -> Path:
@@ -16,7 +19,7 @@ def extract_audio(input_path: Path, output_path: Path, sample_rate: int = 16000)
             "ffprobe", "-v", "error", "-show_entries", "format=duration",
             "-of", "default=noprint_wrappers=1:nokey=1", str(input_path),
         ],
-        capture_output=True, check=True,
+        capture_output=True, check=True, env=_ENV,
     )
     subprocess.run(
         [
@@ -24,7 +27,7 @@ def extract_audio(input_path: Path, output_path: Path, sample_rate: int = 16000)
             "-ar", str(sample_rate), "-ac", "1", "-f", "wav",
             str(output_path),
         ],
-        capture_output=True, check=True,
+        capture_output=True, check=True, env=_ENV,
     )
     return output_path
 

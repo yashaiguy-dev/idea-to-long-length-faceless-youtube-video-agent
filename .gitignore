@@ -1,0 +1,21 @@
+# Environment
+.env
+venv/
+
+# Python
+__pycache__/
+*.pyc
+
+# Node
+node_modules/
+
+# Outputs (generated per-run)
+outputs/
+state/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Docs (local only)
+docs/

@@ -10,6 +10,8 @@ export const RemotionRoot: React.FC = () => {
       defaultProps={{
         outputDir: "",
         filmPreset: "clean_modern",
+        scenes: [],
+        words: [],
       }}
       width={1920}
       height={1080}

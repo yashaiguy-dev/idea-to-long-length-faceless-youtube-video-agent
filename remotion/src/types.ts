@@ -42,7 +42,14 @@ export interface CaptionConfig {
   backgroundColor?: string;
 }
 
+export interface ViralBrollInputProps {
+  outputDir: string;
+  filmPreset: string;
+}
+
 export interface ViralBrollProps {
   outputDir: string;
   filmPreset: string;
+  scenes: SceneData[];
+  words: WordTimestamp[];
 }

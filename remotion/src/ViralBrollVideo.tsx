@@ -7,27 +7,13 @@ import { SceneData, ViralBrollProps, WordTimestamp } from "./types";
 
 const FPS = 30;
 
-function resolveAsset(src: string): string {
-  if (src.startsWith("http://") || src.startsWith("https://")) return src;
-  const clean = src.replace(/^file:\/\/\/?/, "");
-  if (clean.startsWith("/") || /^[A-Za-z]:[/\\]/.test(clean)) {
-    return `file:///${clean.replace(/\\/g, "/")}`;
-  }
-  return staticFile(clean);
-}
-
-function loadJSON(outputDir: string, filename: string): unknown {
-  const fs = require("fs");
-  const path = require("path");
-  const fullPath = path.join(outputDir, filename);
-  return JSON.parse(fs.readFileSync(fullPath, "utf8"));
-}
-
 export const calculateViralBrollMetadata: CalculateMetadataFunction<ViralBrollProps> = async ({
   props,
 }) => {
-  const scenes = loadJSON(props.outputDir, "scenes.json") as { scenes: SceneData[] };
-  const totalSeconds = scenes.scenes.reduce((sum, s) => sum + s.duration, 0);
+  const totalSeconds = (props.scenes || []).reduce(
+    (sum: number, s: SceneData) => sum + s.duration,
+    0,
+  );
 
   return {
     durationInFrames: Math.max(1, Math.ceil(totalSeconds * FPS)),
@@ -37,11 +23,16 @@ export const calculateViralBrollMetadata: CalculateMetadataFunction<ViralBrollPr
   };
 };
 
-export const ViralBrollVideo: React.FC<ViralBrollProps> = ({ outputDir, filmPreset }) => {
-  const scenesData = loadJSON(outputDir, "scenes.json") as { scenes: SceneData[] };
-  const words = loadJSON(outputDir, "words.json") as WordTimestamp[];
+export const ViralBrollVideo: React.FC<ViralBrollProps> = ({
+  outputDir,
+  filmPreset,
+  scenes,
+  words,
+}) => {
+  if (!scenes || scenes.length === 0) {
+    return <AbsoluteFill style={{ backgroundColor: "#000" }} />;
+  }
 
-  const scenes = scenesData.scenes;
   let currentFrame = 0;
 
   return (
@@ -52,8 +43,8 @@ export const ViralBrollVideo: React.FC<ViralBrollProps> = ({ outputDir, filmPres
           const fromFrame = currentFrame;
           currentFrame += durationFrames;
 
-          const imagePath = resolveAsset(
-            `${outputDir}/images/scene_${String(i + 1).padStart(3, "0")}.png`,
+          const imagePath = staticFile(
+            `images/scene_${String(i + 1).padStart(3, "0")}.png`,
           );
 
           return (
@@ -65,9 +56,9 @@ export const ViralBrollVideo: React.FC<ViralBrollProps> = ({ outputDir, filmPres
         })}
       </FilmGrain>
 
-      <Audio src={resolveAsset(`${outputDir}/narration.mp3`)} />
+      <Audio src={staticFile("narration.mp3")} />
 
-      <CaptionOverlay words={words} />
+      {words && words.length > 0 && <CaptionOverlay words={words} />}
     </AbsoluteFill>
   );
 };

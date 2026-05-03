@@ -143,14 +143,15 @@ if __name__ == "__main__":
     if args.check:
         print("Checking dependencies...")
         import shutil
+        from lib.config import GATHOS_IMAGE_API_KEY, GATHOS_TTS_API_KEY, DEEPGRAM_API_KEY
         for tool in ["ffmpeg", "ffprobe"]:
             path = shutil.which(tool) or shutil.which(tool, path="/opt/homebrew/bin")
             print(f"  {tool}: {'OK' if path else 'MISSING'} ({path})")
-        print(f"  Gathos API key: {'SET' if GATHOS_API_KEY else 'MISSING'}")
+        print(f"  Gathos Image key: {'SET' if GATHOS_IMAGE_API_KEY else 'MISSING'}")
+        print(f"  Gathos TTS key: {'SET' if GATHOS_TTS_API_KEY else 'MISSING'}")
         print(f"  Deepgram API key: {'SET' if DEEPGRAM_API_KEY else 'MISSING'}")
         print("Done.")
     elif args.stage and args.run_id:
-        from lib.config import GATHOS_API_KEY, DEEPGRAM_API_KEY
         if args.stage == "viral_dna" and args.youtube_url:
             stage_viral_dna(args.run_id, args.youtube_url)
         else:

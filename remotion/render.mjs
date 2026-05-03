@@ -1,6 +1,10 @@
 import { bundle } from "@remotion/bundler";
 import { renderMedia, selectComposition } from "@remotion/renderer";
+import fs from "fs";
 import path from "path";
+import { fileURLToPath } from "url";
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 const outputDir = process.argv[2];
 const filmPreset = process.argv[3] || "clean_modern";
@@ -11,13 +15,23 @@ if (!outputDir) {
   process.exit(1);
 }
 
-const entry = path.join(import.meta.dirname, "src", "index.tsx");
+const absOutputDir = path.resolve(outputDir);
+
+const scenesRaw = JSON.parse(fs.readFileSync(path.join(absOutputDir, "scenes.json"), "utf8"));
+const words = JSON.parse(fs.readFileSync(path.join(absOutputDir, "words.json"), "utf8"));
+
+const inputProps = {
+  outputDir: absOutputDir,
+  filmPreset,
+  scenes: scenesRaw.scenes,
+  words,
+};
+
+const entry = path.join(__dirname, "src", "index.tsx");
 
 async function main() {
   console.log(`Bundling Remotion project...`);
-  const bundled = await bundle({ entryPoint: entry });
-
-  const inputProps = { outputDir: path.resolve(outputDir), filmPreset };
+  const bundled = await bundle({ entryPoint: entry, publicDir: absOutputDir });
 
   console.log(`Selecting composition...`);
   const composition = await selectComposition({
@@ -27,12 +41,17 @@ async function main() {
   });
 
   console.log(`Rendering ${composition.durationInFrames} frames at ${composition.fps}fps...`);
+  console.log(`Output: ${outputFile}`);
   await renderMedia({
     composition,
     serveUrl: bundled,
     codec: "h264",
     outputLocation: outputFile,
     inputProps,
+    chromiumOptions: {
+      enableMultiProcessOnLinux: false,
+      args: ["--allow-file-access-from-files", "--disable-web-security"],
+    },
   });
 
   console.log(`Done: ${outputFile}`);
